@@ -77,7 +77,7 @@ export const cacheJishoResult = async (word: string, result: JishoResult): Promi
   }
 }
 
-export const queryJisho = async (word: string, cache: boolean = true): Promise<JishoResult> => {
+export const queryJisho = async (word: string, cache = true): Promise<JishoResult> => {
   console.log(`Querying Jisho for "${word}"...`);
   const cachedResult = await getCachedJishoResult(word);
   if(cachedResult) {

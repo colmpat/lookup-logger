@@ -26,7 +26,7 @@ export default function Home() {
 function SearchBar() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const { data, isLoading, isError } = useLookup(submittedQuery);
+  const { data, isLoading, error } = useLookup(submittedQuery);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,7 +56,7 @@ function SearchBar() {
       </form>
 
       {isLoading && <div>Loading...</div>}
-      {isError && <div>Error fetching data</div>}
+      {error && <div>Error fetching data</div>}
       {data && (
         <div className="mt-4">
           <h2 className="font-bold text-lg">Search Results:</h2>

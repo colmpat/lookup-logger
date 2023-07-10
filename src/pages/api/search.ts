@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { queryJisho } from '~/server/jishoCache';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,4 +14,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Return the search results
   return res.status(200).json(searchResults);
-};
+}
