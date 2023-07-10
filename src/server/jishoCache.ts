@@ -1,7 +1,7 @@
 import { Redis } from "@upstash/redis"
 import { env } from "~/env.mjs"
 
-type JishoResult = {
+export type JishoResult = {
   meta: {
     status: number,
   },
@@ -50,14 +50,14 @@ const redis = new Redis({
  * @throws {Error} If the cached result is not a string or string[].
  */
 export const getCachedJishoResult = async (word: string): Promise<JishoResult | null> => {
-  const cachedResult = await redis.get(word);
+  const cachedResult = await redis.get<JishoResult>(word);
   if(!cachedResult) {
     console.log(`\tcache miss for "${word}"`);
     return null;
   }
   console.log(`\tcache hit for "${word}"`);
 
-  return cachedResult as JishoResult;
+  return cachedResult;
 }
 
 /**
@@ -68,34 +68,28 @@ export const getCachedJishoResult = async (word: string): Promise<JishoResult | 
  * @returns True if the Jisho result was successfully cached, false otherwise.
  * @throws {Error} If the Jisho result could not be stringified.
  */
-export const cacheJishoResult = async (word: string, result: JishoResult): Promise<boolean> => {
-  const cacheResult = await redis.set(word, JSON.stringify(result));
+export const cacheJishoResult = async (word: string, result: JishoResult): Promise<void> => {
+  const cacheResult = await redis.set(word, JSON.stringify(result.data));
   if(!cacheResult || cacheResult !== 'OK') {
     console.error(`\tfailed to cache Jisho result for ${word}`)
-    return false;
   } else {
     console.log(`\tcached Jisho result for "${word}"`)
-    return true;
   }
 }
 
-export const queryJisho = async (word: string, cache: boolean = true): Promise<JishoEntry[]> => {
+export const queryJisho = async (word: string, cache: boolean = true): Promise<JishoResult> => {
   console.log(`Querying Jisho for "${word}"...`);
   const cachedResult = await getCachedJishoResult(word);
   if(cachedResult) {
-    if(cachedResult.meta.status !== 200) {
-      console.error(`\tJisho returned status ${cachedResult.meta.status} for "${word}"`);
-      return [];
-    }
-    return cachedResult.data;
+    return cachedResult;
   }
 
   const result = await fetch(`${JISHO_URL}${encodeURIComponent(word)}`);
-  const json = await result.json();
+  const jishoResult = await result.json() as JishoResult;
 
   if(cache) {
-    await cacheJishoResult(word, json);
+    await cacheJishoResult(word, jishoResult);
   }
 
-  return json;
+  return jishoResult;
 }
